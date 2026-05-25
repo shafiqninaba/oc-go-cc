@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "./out serve --config configs/config.example.json",
+    "startCommand": "mkdir -p \"$HOME/.config/oc-go-cc\" && ./out serve --config configs/config.example.json",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
