@@ -100,7 +100,7 @@ oc-go-cc --version          Show version
 
 ### 1. Create a Railway service
 
-Point Railway at this repository. Nixpacks will build the binary automatically. The start command in `railway.json` runs `oc-go-cc serve` against the checked-in `configs/config.example.json` (env vars override the values you care about).
+Point Railway at this repository. Nixpacks will build the binary automatically. The start command in `railway.json` runs `oc-go-cc serve` against the checked-in `configs/config.example.json` (env vars override the values you care about). It also `mkdir -p`s `$HOME/.config/oc-go-cc/` first, because `serve` writes a PID file there and Nixpacks containers don't pre-create it.
 
 ### 2. Set environment variables
 
