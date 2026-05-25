@@ -94,6 +94,38 @@ oc-go-cc --version          Show version
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development setup, architecture, how it works |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and debug mode |
 
+## Deploying on Railway
+
+`oc-go-cc` can be deployed publicly on [Railway](https://railway.app) with a shared-secret bearer token gating access. Railway auto-detects the Go project via Nixpacks — no Dockerfile is needed. The `railway.json` at the repo root tells Railway how to start the binary, what to healthcheck, and how to restart on failure.
+
+### 1. Create a Railway service
+
+Point Railway at this repository. Nixpacks will build the binary automatically. The start command in `railway.json` runs `oc-go-cc serve` against the checked-in `configs/config.example.json` (env vars override the values you care about).
+
+### 2. Set environment variables
+
+| Variable | Required | Description |
+| -------- | -------- | ----------- |
+| `OC_GO_CC_API_KEY`   | Yes | Your OpenCode Go API key. |
+| `PROXY_AUTH_TOKEN`   | Yes (for public deploys) | Shared secret clients must present in `Authorization: Bearer <token>` (or `x-api-key`). Generate one with `openssl rand -hex 32`. **If unset, auth is disabled** — fine for `localhost`, dangerous on the public internet. |
+| `OC_GO_CC_HOST`      | Yes | Set to `0.0.0.0` so the server binds to all interfaces. |
+| `OC_GO_CC_PORT`      | Yes | Set to `${{PORT}}` (literal Railway reference) so the server listens on the port Railway assigned. |
+
+The `/health` endpoint is exempt from auth so Railway's healthcheck (`/health`, 30s timeout) keeps working.
+
+### 3. Point Claude Code at the deployed URL
+
+```bash
+export ANTHROPIC_BASE_URL=https://<your-service>.up.railway.app
+export ANTHROPIC_AUTH_TOKEN=<same value as PROXY_AUTH_TOKEN>
+```
+
+Claude Code sends `ANTHROPIC_AUTH_TOKEN` as a bearer token, which the proxy validates against `PROXY_AUTH_TOKEN` using a constant-time comparison.
+
+### Local use is unchanged
+
+Omit `PROXY_AUTH_TOKEN` and the auth middleware becomes a passthrough no-op. A single warning is logged at startup so you know auth is off — perfect for `127.0.0.1` development.
+
 ## License
 
 [AGPL-3.0](LICENSE)
